@@ -4,6 +4,7 @@ from rest_framework import generics, permissions
 from .serializers import UserSerializer, NoteSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Note
+from rest_framework.permissions import IsAuthenticated
 
 
 class AdviserNotesView(generics.ListAPIView):
