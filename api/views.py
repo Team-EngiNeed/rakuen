@@ -133,6 +133,32 @@ class NoteListLabtech(generics.ListCreateAPIView):
         else:
             print(serializer.errors)
 
+class NoteDetailNurse(generics.RetrieveUpdateAPIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "pk"  # Ensure consistency
+
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user)
+        
+class NoteDetailLibrarian(generics.RetrieveUpdateAPIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "pk"  # Ensure consistency
+
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user)
+        
+class NoteDetailLabtech(generics.RetrieveUpdateAPIView):
+    serializer_class = NoteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    lookup_field = "pk"  # Ensure consistency
+
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user)
+        
+
+
 class NoteDelete(generics.DestroyAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
