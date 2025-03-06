@@ -26,7 +26,7 @@ MIDDLEWARE = [
 
 
 
-CORS_ALLOWED_ORIGINS = ['https://rakuen-lnzd.onrender.com']
+CORS_ALLOWED_ORIGINS = ['valmasciengineed.com']
 
 STORAGES = {
   "default":{
