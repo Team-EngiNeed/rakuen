@@ -25,7 +25,7 @@ MIDDLEWARE = [
 ]
 
 
-
+CSRF_TRUSTED_ORIGINS = ['https://rakuen-lnzd.onrender.com']
 CORS_ALLOWED_ORIGINS = ['https://rakuen-lnzd.onrender.com']
 
 STORAGES = {
