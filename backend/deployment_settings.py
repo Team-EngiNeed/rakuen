@@ -24,9 +24,8 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
-
-CSRF_TRUSTED_ORIGINS = ['https://rakuen-lnzd.onrender.com']
-CORS_ALLOWED_ORIGINS = ['https://rakuen-lnzd.onrender.com']
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 STORAGES = {
   "default":{
