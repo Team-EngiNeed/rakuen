@@ -26,7 +26,7 @@ MIDDLEWARE = [
 
 
 
-CORS_ALLOWED_ORIGINS = ['valmasciengineed.com']
+CORS_ALLOWED_ORIGINS = ['https://valmasciengineed.com']
 
 STORAGES = {
   "default":{
