@@ -152,13 +152,5 @@ STATIC_ROOT = BASE_DIR/'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWS_CREDENTIALS = True
 
-
-CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-    'Access-Control-Allow-Origin',
-    'Access-Control-Allow-Headers',
-]
+AUTH_USER_MODEL = 'api.User'

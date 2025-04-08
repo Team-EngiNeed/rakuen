@@ -1,12 +1,10 @@
-from django.shortcuts import render
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions
-from .serializers import UserSerializer, NoteSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from .serializers import UserSerializer, NoteSerializer
 from .models import Note
-from rest_framework.permissions import IsAuthenticated
 
-
+# 📌 Special case for Advisers to see notes from Executives in the same section
 class AdviserNotesView(generics.ListAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
@@ -14,172 +12,51 @@ class AdviserNotesView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         if not user.username.endswith("-Adviser"):
-            return Note.objects.none()  
+            return Note.objects.none()
         section_prefix = user.username.split("-")[0]
-
         executives = User.objects.filter(username__startswith=f"{section_prefix}-Executive")
         return Note.objects.filter(author__in=executives)
 
-class NoteListEngineer(generics.ListCreateAPIView):
+# ✅ Universal list/create view with role-based logic
+class RoleBasedNoteListView(generics.ListCreateAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Note.objects.all()
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-class NoteListUtility(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Note.objects.all()
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-
-class NoteListCreate(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Note.objects.all()
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-
-# ✅ View for listing and creating notes
-class NoteListExecutive(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
+        role = self.request.user.username.split("-")[-1]
+        if role in ["Executive", "Nurse", "Librarian", "Labtech", "Engineer", "Utility"]:
+            return Note.objects.filter(author=self.request.user)
+        return Note.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-
-# ✅ View for retrieving and updating a single note
-class NoteDetailExecutive(generics.RetrieveUpdateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "pk"  # Ensure consistency
-
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
-
-class NoteDetailEngineer(generics.RetrieveUpdateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "pk"  # Ensure consistency
-
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
-
-
-class NoteListNurse(generics.ListCreateAPIView):
+# ✅ Universal detail view for retrieve/update
+class RoleBasedNoteDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-class NoteListLibrarian(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-class NoteListLabtech(generics.ListCreateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        return Note.objects.filter(author=user)
-
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(author=self.request.user)
-        else:
-            print(serializer.errors)
-
-class NoteDetailNurse(generics.RetrieveUpdateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "pk"  # Ensure consistency
+    lookup_field = "pk"
 
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user)
-        
-class NoteDetailLibrarian(generics.RetrieveUpdateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "pk"  # Ensure consistency
 
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
-        
-class NoteDetailLabtech(generics.RetrieveUpdateAPIView):
-    serializer_class = NoteSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field = "pk"  # Ensure consistency
-
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
-        
-
-
+# ✅ Note Deletion (only delete notes created by self)
 class NoteDelete(generics.DestroyAPIView):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        print(f"Authenticated user: {user}")  # Log the user
-        return Note.objects.filter(author=user)
+        return Note.objects.filter(author=self.request.user)
 
-
-
-
-
+# ✅ User registration
 class CreateUserView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [AllowAny]
 
-
-class NoteDetail(generics.RetrieveUpdateAPIView): 
+# 🔎 Optional: if you still need a non-role-specific detail view
+class NoteDetail(generics.RetrieveUpdateAPIView):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
     lookup_field = 'id'
-    permission_classes = [permissions.IsAuthenticated] 
+    permission_classes = [IsAuthenticated]

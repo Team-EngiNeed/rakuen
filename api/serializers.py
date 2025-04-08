@@ -3,34 +3,62 @@ from rest_framework import serializers
 from .models import Note
 
 
+from rest_framework import serializers
+from .models import CustomUser  # Replace with the actual path to your model
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ["id", "username", "password"]
-        extra_kwargs = {"password": {"write_only": True}}
+        model = CustomUser
+        fields = ["id", "email", "password", "role", "section", "username"]
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "username": {"read_only": True},  # It's auto-generated
+        }
 
     def create(self, validated_data):
-        print(validated_data)
-        user = User.objects.create_user(**validated_data)
-        return user
+        # This ensures the CustomUserManager's logic (username generation) is applied
+        return CustomUser.objects.create_user(**validated_data)
 
+    def update(self, instance, validated_data):
+        # Allow password update if provided
+        if "password" in validated_data:
+            instance.set_password(validated_data.pop("password"))
+
+        # Allow role/section updates, then regenerate the username
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.update_username()
+        instance.save()
+        return instance
+
+
+
+from rest_framework import serializers
+from .models import Note
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         fields = [
-            "id",
-            "created_at",
-            "author",
-            "fullName",
-            "gradeSection",
-            "completed",
-            "dateSubmitted",
-            "damagedProperty",
-            "comment",
+            'id',
+            'author',
+            'created_at',
+            'fullName',
+            'gradeSection',
+            'completed',
+            'dateSubmitted',
+            'damagedProperty',
+            'comment',
+            'image',
+            'priority',
         ]
-        extra_kwargs = {
-            "author": {"read_only": True},  # Ensure 'author' is read-only
-            "created_at": {"read_only": True},  # Read-only for automatically added timestamps
-            "dateSubmitted": {"required": False},  # Optional field for submissions
-        }
+        read_only_fields = ['id', 'created_at', 'priority', 'author']
+
+    def create(self, validated_data):
+        # Automatically assign the author from the request user
+        request = self.context.get('request')
+        if request and hasattr(request, 'user'):
+            validated_data['author'] = request.user
+        return super().create(validated_data)
+
